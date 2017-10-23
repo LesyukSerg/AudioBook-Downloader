@@ -1,56 +1,63 @@
 // ==UserScript==
 // @name         Save AudioBook
 // @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  try to take over the world!
+// @version      0.2
+// @description  sript creates button download to download all files of one audiobook
 // @author       Lesyuk Serg
 // @match        https://audioknigi.club/*
 //include        https://audioknigi.club/*
-// @updateURL    https://raw.githubusercontent.com/LesyukSerg/AudioBook-Downloade/master/downloader.meta.js
-// @downloadURL  https://raw.githubusercontent.com/LesyukSerg/AudioBook-Downloade/master/downloader.user.js
 // @grant        none
 // ==/UserScript==
 
 (function() {
-    var start = 0;
-    $('.player-side').append('<span style="cursor:pointer;float:left;background:#ff2d01;padding:4px 14px;color:#FFF;border-radius:3px;" class="collect_book">DOWNLOAD</span>');
-
-    $('.player-side').delegate(".collect_book", "click", function() {
-        start = 1;
-        $('.jp-playlist-item').first().click();
-    });
-
     var links = [];
     var src = '';
     var audio = $('.main-frame #jquery_jplayer_1 #jp_audio_0');
 
-    var сrm = setInterval(function() {
+    $('.player-side').append('<span style="cursor:pointer;float:left;background:#ff2d01;padding:4px 14px;color:#FFF;border-radius:3px;" class="collect_book">DOWNLOAD</span>');
+
+    $('.player-side').delegate(".collect_book", "click", function() {
+        $('.jp-playlist-item').first().click();
+        $('.player-side').append('<span style="cursor:pointer;float:left;background:#ff2d01;padding:4px 14px;color:#FFF;border-radius:3px;margin-left:8px" class="next_file">NEXT</span>');
+
+        getOneFile(audio);
+        var stop = setInterval(function() {
+            getOneFile(audio, stop);
+        }, 10000);
+    });
+
+    $('.player-side').delegate(".next_file", "click", function() {
+        getOneFile(audio);
+    });
+
+    function getOneFile(audio, stop)
+    {
         var total = $('.jp-playlist-item').length;
+        var newSrc = audio.attr('src');
 
-        if (start) {
-            var newSrc = audio.attr('src');
+        if (src != newSrc && newSrc !== '') {
+            src = newSrc;
+            links.push(src);
+            SaveToDisk(src, audio.attr('title')+'.mp3');
 
-            if (src != newSrc && newSrc !== '') {
-                src = newSrc;
-                //$('.player-side').append('<a style="border:1px solid;border-radius:3px;padding:0 8px;margin:4px" href="' + src + '">' + audio.attr('title') + '</a><br>');
-                SaveToDisk(src, audio.attr('title')+'.mp3');
-                links.push(src);
+            $('.collect_book').html('DOWNLOADING [' + total + '/' + links.length + ']');
+            var next = links.length + 1;
+            var nextItem = $('.jp-playlist ul li:nth-child(' + next + ') .jp-playlist-item');
 
-                $('.collect_book').html('DOWNLOADING [' + total + '/' + links.length + ']');
-                var next = links.length + 1;
-                var nextItem = $('.jp-playlist ul li:nth-child(' + next + ') .jp-playlist-item');
+            if (nextItem.length) {
+                nextItem.click();
+                setTimeout(function(){ $('.jp-type-playlist .jp-pause').click(); }, 400);
 
-                if (nextItem.length) {
-                    nextItem.click();
-                } else {
-                    clearInterval(crm);
-                    $('.collect_book').html('DOWNLOAD COMPLETTE');
-                }
+            } else {
+                $('.collect_book').html('DOWNLOAD COMPLETTE');
+                $('.next_file').remove();
+                clearInterval(stop);
             }
         }
-    }, 60000);
+    }
 
-    function SaveToDisk(fileURL, fileName) {
+    function SaveToDisk(fileURL, fileName)
+    {
         // for non-IE
         if (!window.ActiveXObject) {
             var save = document.createElement('a');
@@ -69,10 +76,8 @@
             }
 
             (window.URL || window.webkitURL).revokeObjectURL(save.href);
-        }
 
-        // for IE
-        else if (!!window.ActiveXObject && document.execCommand) {
+        } else if (!!window.ActiveXObject && document.execCommand) { // for IE
             var _window = window.open(fileURL, '_blank');
             _window.document.close();
             _window.document.execCommand('SaveAs', true, fileName || fileURL);
