@@ -13,21 +13,36 @@
     var links = [];
     var src = '';
     var audio = $('.main-frame #jquery_jplayer_1 #jp_audio_0');
+    var stop;
+    var sleep = 10000;
 
     $('.player-side').append('<span style="cursor:pointer;float:left;background:#ff2d01;padding:4px 14px;color:#FFF;border-radius:3px;" class="collect_book">DOWNLOAD</span>');
 
     $('.player-side').delegate(".collect_book", "click", function() {
         $('.jp-playlist-item').first().click();
+        $('.player-side').append('<span style="cursor:pointer;float:left;background:#ff2d01;padding:4px 14px;color:#FFF;border-radius:3px;margin-left:8px" class="pause_downloading">Pause</span>');
         $('.player-side').append('<span style="cursor:pointer;float:left;background:#ff2d01;padding:4px 14px;color:#FFF;border-radius:3px;margin-left:8px" class="next_file">NEXT</span>');
 
         getOneFile(audio);
-        var stop = setInterval(function() {
+        stop = setInterval(function() {
             getOneFile(audio, stop);
-        }, 10000);
+        }, sleep);
     });
 
     $('.player-side').delegate(".next_file", "click", function() {
         getOneFile(audio);
+    });
+
+    $('.player-side').delegate(".pause_downloading", "click", function() {
+        if ($(this).data('onPause')) {
+            stop = setInterval(function() { getOneFile(audio, stop); }, sleep);
+            $(this).html("Pause");
+            $(this).data('onPause', 0);
+        } else {
+            clearInterval(stop);
+            $(this).html("Continue");
+            $(this).data('onPause', 1);
+        }
     });
 
     function getOneFile(audio, stop)
