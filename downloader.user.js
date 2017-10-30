@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Save AudioBook
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  sript creates button download to download all files of one audiobook
 // @author       Lesyuk Serg
 // @match        https://audioknigi.club/*
