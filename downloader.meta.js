@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AudioBook Downloader
-// @version      0.1
+// @version      0.3
 // @author       Lesyuk Serg
 // @description  try to take over the world!
 // @author       Lesyuk Serg
